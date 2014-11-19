@@ -5,7 +5,7 @@ include Socket::Constants
 # Volcano FTP contants
 BINARY_MODE = 0
 ASCII_MODE = 1
-
+SIZE = 1024 * 1024 * 10
 CONFIGS = YAML.load_file("config.yml")
 
 MIN_PORT = CONFIGS['MIN_PORT']
@@ -38,8 +38,9 @@ class VolcanoFtp
   end
 
   def ftp_cwd(args)
-    puts args
-    Dir.chdir(args)
+    args = /^[\n\s\t]*(#{ROOT}[^\t\n\r]*)[\t\n\r]*$/.match(args)
+    args[1].gsub!("\s", "\\\s")
+    Dir.chdir(args[1])
     @cs.write "250 CWD command successful.\r\n"
     0
   end
@@ -99,6 +100,46 @@ class VolcanoFtp
     -1
   end
 
+  def ftp_list(args)
+    if args == ""
+       args = Dir.pwd
+    end
+     # @cs.write "150 Opening data connection for #{Dir.pwd}.\r\n"
+      #  if not @tsocket.nil?
+       #         if @tsocket.instance_of?(TCPServer)
+        #                @ts, = @tsocket.accept
+         #       else
+          #              @ts = @tsocket
+           #     end
+            #    @ts.write `ls -la #{Dir.pwd}`
+             #   @ts.close
+        #else
+        #        @cs.write `ls -la #{Dir.pwd}`
+       # end
+       # @cs.write "226 Transfer complete.\r\n"
+       # @tsocket = nil
+       # 0
+    resp = `ls -l #{args}`
+    @cs.write "125 Opening data connection for #{args}.\r\n"
+    #@tsocket.write resp
+    resp.split("\n").each {|file|
+      @tsocket.write "#{file}\r\n"
+    }
+    @tsocket.close
+    @cs.write "226 Transfer complete.\r\n"
+    0
+  end
+
+  def ftp_stor(args)
+    @cs.write "150 Opening ASCII mode data connection for file stor\r\n"
+    file = File.new(args, "a")
+    while chunk = @tsocket.read(1024)
+      file.write(chunk)
+    end
+    @cs.write "226 Transfer complete.\r\n"
+    0
+  end
+
   def run
     while (42)
       selectResult = IO.select([@socket], nil, nil, 0.1)
@@ -128,7 +169,7 @@ class VolcanoFtp
 	    if not args.nil? then
 	       cmd = "ftp_#{args[1].downcase}"
 	       if not respond_to? :"#{cmd}" then
-	       cmd = "ftp_502"
+	       	  cmd = "ftp_502"
 	       end
 	    end
 	    method = method(:"#{cmd}")
