@@ -5,4 +5,4 @@ def ftp_stor(args)
       file.write(chunk)
     end
     @cs.write "226 Transfer complete.\r\n"
-
+end

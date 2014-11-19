@@ -4,3 +4,4 @@ def list_ftp(args)
     @tsocket.write resp
     @cs.write "226 Transfer complete.\r\n"
     @tsocket.close
+end
