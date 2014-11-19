@@ -1,0 +1,5 @@
+MIN_PORT	:	1025
+MAX_PORT	:	65534
+HOST		:	127.0.0.1
+PORT		:	4242
+ROOT		:	/Users/TheAngelsMac/projets/master1
