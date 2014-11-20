@@ -22,9 +22,11 @@ class VolcanoFtp
     if port == nil
        port = PORT
     end
+
     @socket = TCPServer.new(HOST, port)
     @socket.listen(42)
 
+    Dir.chdir(ROOT)
     @pids = []
     @transfert_type = BINARY_MODE
     @tsocket = nil
@@ -32,15 +34,13 @@ class VolcanoFtp
   end
 
   def ftp_pwd(args)
-    dir = ROOT
+    dir = Dir.getwd
     @cs.write "257 \"#{dir}\" is current directory.\r\n"
     0
   end
 
   def ftp_cwd(args)
-    args = /^[\n\s\t]*(#{ROOT}[^\t\n\r]*)[\t\n\r]*$/.match(args)
-    args[1].gsub!("\s", "\\\s")
-    Dir.chdir(args[1])
+    Dir.chdir args.strip
     @cs.write "250 CWD command successful.\r\n"
     0
   end
@@ -138,6 +138,45 @@ class VolcanoFtp
     end
     @cs.write "226 Transfer complete.\r\n"
     0
+  end
+
+  def ftp_retr(args)
+    @cs.write "125 Opening data connection for file retr.\r\n"
+    @tsocket.print File.read("#{Dir.pwd}/#{args.strip}")
+    @cs.write "226 transfer complete"
+    @tsocket.close
+    0
+  end
+
+  def ftp_dele(args)
+    File.delete(args)
+    @cs.write "250 DELE COMMAND Successful.\r\n"
+    0
+  end
+
+  def ftp_rmd(args)
+    Dir.delete args.strip
+    @cs.write "250 RMD COMMAND Successful.\r\n"
+  end
+
+  def ftp_mkd(args)
+    Dir.mkdir args.strip
+    @cs.write "250 MKD COMMAND Successful.\r\n"
+    0
+  end
+
+  def ftp_rnfr(args)
+      @originalfile = args.strip
+      @cs.write "250 RNFR COMMAND Successful.\r\n"
+      0
+  end
+
+  def ftp_rnto(args)
+      newfile = "#{Dir.pwd}/#{args}"
+      newfile.strip
+      File.rename(@originalfile, newfile)
+      @cs.write "250 RNTO COMMAND Successful.\r\n"
+      0
   end
 
   def run
