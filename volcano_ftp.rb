@@ -133,7 +133,7 @@ class VolcanoFtp
   def ftp_stor(args)
     @cs.write "150 Opening ASCII mode data connection for file stor\r\n"
     file = File.new(args, "a")
-    while chunk = @tsocket.read(1024)
+    while chunk = @tsocket.read(2048)
       file.write(chunk)
     end
     @cs.write "226 Transfer complete.\r\n"
@@ -142,13 +142,29 @@ class VolcanoFtp
 
   def ftp_retr(args)
     @cs.write "125 Opening data connection for file retr.\r\n"
-    @tsocket.print File.read("#{Dir.pwd}/#{args.strip}")
-    @cs.write "226 transfer complete"
+    unless File.exists?("#{Dir.pwd}/#{args}")
+      @cs.write "550 No such file #{args}.\r\n"
+      return -1
+    end
+    unless File.readable?("#{Dir.pwd}/#{args}")
+      @cs.write "550 Can't read file #{args}.\r\n"
+      return -1
+    end
+    File.open("#{Dir.pwd}/#{args}") do |f|
+      while(chunk = f.read(2048))
+        @tsocket.write(chunk)
+      end
+    end
+    @cs.write "226 transfer complete\r\n"
     @tsocket.close
     0
   end
 
   def ftp_dele(args)
+    unless File.exists?("#{Dir.pwd}/#{args}")
+      @cs.write "550 No such file #{args}.\r\n"
+      return -1
+    end
     File.delete(args)
     @cs.write "250 DELE COMMAND Successful.\r\n"
     0
