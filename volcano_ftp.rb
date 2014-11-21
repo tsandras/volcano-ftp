@@ -51,6 +51,10 @@ class VolcanoFtp
   end
 
   def ftp_cwd(args)
+    unless Dir.exists?(args)
+      @cs.write "550 No such directory #{args}.\r\n"
+      return -1
+    end
     Dir.chdir args.strip
     @cs.write "250 CWD command successful.\r\n"
     0
@@ -115,6 +119,10 @@ class VolcanoFtp
     if args == ""
        args = Dir.pwd
     end
+    unless Dir.exists?(args)
+      @cs.write "550 No such directory #{args}.\r\n"
+      return -1
+    end
     resp = `ls -l #{args}`
     @cs.write "125 Opening data connection for #{args}.\r\n"
     #@tsocket.write resp
@@ -127,8 +135,12 @@ class VolcanoFtp
   end
 
   def ftp_stor(args)
+    if Dir.exists?(args)
+      @cs.write "550 A directory #{args} already.\r\n"
+      return -1
+    end
     @cs.write "150 Opening ASCII mode data connection for file stor\r\n"
-    file = File.new(args, "a")
+    file = File.new(args, "w")
     while chunk = @tsocket.read(2048)
       file.write(chunk)
     end
@@ -170,7 +182,7 @@ class VolcanoFtp
 
   def ftp_rmd(args)
     args = args.strip
-    unless File.exists?(args)
+    unless Dir.exists?(args)
       @cs.write "550 No such directory.\r\n"
       return -1
     end
@@ -180,18 +192,30 @@ class VolcanoFtp
   end
 
   def ftp_mkd(args)
+    if Dir.exists?(args)
+      @cs.write "550 Directory #{args} already exists.\r\n"
+      return -1
+    end
     Dir.mkdir args.strip
     @cs.write "250 MKD COMMAND Successful.\r\n"
     0
   end
 
   def ftp_rnfr(args)
+      unless File.exists?(args)
+        @cs.write "550 No such file #{args}.\r\n"
+        return -1
+      end
       @originalfile = args.strip
       @cs.write "250 RNFR COMMAND Successful.\r\n"
       0
   end
 
   def ftp_rnto(args)
+      if File.exists?(args)
+        @cs.write "550 File #{args} already exists.\r\n"
+        return -1
+      end
       newfile = "#{Dir.pwd}/#{args}"
       newfile.strip
       File.rename(@originalfile, newfile)
