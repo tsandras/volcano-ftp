@@ -19,18 +19,29 @@ class VolcanoFtp
   def initialize(port)
     # Prepare instance
 
+    if File.exists?ROOT
+       if File.readable?ROOT
+       	  if File.directory?ROOT
+    	     Dir.chdir(ROOT)
+	     @socket = TCPServer.new(HOST, port)
+    	     @socket.listen(42)
+    	     @pids = []
+    	     @transfert_type = BINARY_MODE
+    	     @tsocket = nil
+    	     puts "Server ready to listen for clients on port #{port}"
+	  else
+	   	puts "#{ROOT} : Is not a directory"
+	  end
+       else
+	  puts "#{ROOT} is not readable"
+       end
+    else
+       puts "#{ROOT} : No such file or directory"
+    end
+
     if port == nil
        port = PORT
     end
-
-    @socket = TCPServer.new(HOST, port)
-    @socket.listen(42)
-
-    Dir.chdir(ROOT)
-    @pids = []
-    @transfert_type = BINARY_MODE
-    @tsocket = nil
-    puts "Server ready to listen for clients on port #{port}"
   end
 
   def ftp_pwd(args)
