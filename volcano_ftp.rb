@@ -104,21 +104,6 @@ class VolcanoFtp
     if args == ""
        args = Dir.pwd
     end
-     # @cs.write "150 Opening data connection for #{Dir.pwd}.\r\n"
-      #  if not @tsocket.nil?
-       #         if @tsocket.instance_of?(TCPServer)
-        #                @ts, = @tsocket.accept
-         #       else
-          #              @ts = @tsocket
-           #     end
-            #    @ts.write `ls -la #{Dir.pwd}`
-             #   @ts.close
-        #else
-        #        @cs.write `ls -la #{Dir.pwd}`
-       # end
-       # @cs.write "226 Transfer complete.\r\n"
-       # @tsocket = nil
-       # 0
     resp = `ls -l #{args}`
     @cs.write "125 Opening data connection for #{args}.\r\n"
     #@tsocket.write resp
@@ -142,15 +127,16 @@ class VolcanoFtp
 
   def ftp_retr(args)
     @cs.write "125 Opening data connection for file retr.\r\n"
-    unless File.exists?("#{Dir.pwd}/#{args}")
+    args = args.strip
+    unless File.exists?(args)
       @cs.write "550 No such file #{args}.\r\n"
       return -1
     end
-    unless File.readable?("#{Dir.pwd}/#{args}")
+    unless File.readable?(args)
       @cs.write "550 Can't read file #{args}.\r\n"
       return -1
     end
-    File.open("#{Dir.pwd}/#{args}") do |f|
+    File.open(args) do |f|
       while(chunk = f.read(2048))
         @tsocket.write(chunk)
       end
@@ -161,7 +147,8 @@ class VolcanoFtp
   end
 
   def ftp_dele(args)
-    unless File.exists?("#{Dir.pwd}/#{args}")
+    args = args.strip
+    unless File.exists?(args)
       @cs.write "550 No such file #{args}.\r\n"
       return -1
     end
@@ -171,8 +158,14 @@ class VolcanoFtp
   end
 
   def ftp_rmd(args)
-    Dir.delete args.strip
+    args = args.strip
+    unless File.exists?(args)
+      @cs.write "550 No such directory.\r\n"
+      return -1
+    end
+    Dir.delete args
     @cs.write "250 RMD COMMAND Successful.\r\n"
+    0
   end
 
   def ftp_mkd(args)
