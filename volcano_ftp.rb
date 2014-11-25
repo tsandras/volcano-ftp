@@ -51,8 +51,8 @@ class VolcanoFtp
   end
 
   def ftp_cwd(args)
-    unless Dir.exists?(args)
-      @cs.write "550 No such directory #{args}.\r\n"
+    unless Dir.exists?(args.strip)
+      @cs.write "550 No such directory #{args.strip}.\r\n"
       return -1
     end
     Dir.chdir args.strip
