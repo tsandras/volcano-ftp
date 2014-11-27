@@ -5,6 +5,27 @@ In Circo maximo, inquit, venationis amplissimae pugna populo dabatur. Eius rei, 
 
 ![alt tag](http://www.guatemalavolcano.com/images/activity%20icons/icons%203-01.png)
 
+
+Prérequis
+=========
+
+Installation de daemons :
+-------------------------
+
+`gem install daemons`
+
+
 SYNOPSIS
 ========================
-./volcano.rb [port] [start|stop|restart]
+
+**Pour lancer le serveur :**
+
+`./volcano.rb start [--port PORT_NUMBER]`
+
+**Pour arrêter le serveur :**
+
+`./volcano.rb stop`
+
+**Pour relancer le server :**
+
+`./volcano.rb restart [--port PORT_NUMBER]`

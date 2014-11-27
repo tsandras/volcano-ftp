@@ -16,11 +16,7 @@ OptionParser.new do |opts|
 
 end.parse!
 
-Daemons.run_proc(
-  'volcano_ftp',
-  {
-    :log_output => true,
-  }) do
+Daemons.run_proc('volcano_ftp', {:log_output => true,}) do
     ftp = VolcanoFtp.new(config[:port])
     ftp.run
 end
