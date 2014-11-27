@@ -244,22 +244,22 @@ class VolcanoFtp
           puts "[#{Process.pid}] Instanciating connection from #{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}"
           @cs.write "220-\r\n\r\n Welcome to Volcano FTP server !\r\n\r\n220 Connected\r\n"
           while not (line = @cs.gets).nil?
-            puts "[#{Process.pid}] Client sent : --#{line}--"
-            ####
-	  #  puts "------------- #{line} ----------"
+            puts "[#{Process.pid}] Client sent : --#{line.strip}--"
+            f = File.open("test.txt", "a")
+            f.puts(line.strip)
+            f.close
             args = /^[\n\s\t]*(\w+)[\s\t\n]+(.*)/.match(line)
-	  #  puts "......................... #{args}............................."
-	    if not args.nil? then
-	       cmd = "ftp_#{args[1].downcase}"
-	       if not respond_to? :"#{cmd}" then
-	       	  cmd = "ftp_502"
-	       end
-	    end
-	    method = method(:"#{cmd}")
-	   # puts method
-	    if method.call(args[2]) == -1 then break
-	    end
-            ####
+      	    if not args.nil? then
+              # puts "#{args[1].downcase}"
+      	      cmd = "ftp_#{args[1].downcase.strip}"
+      	      if not respond_to? :"#{cmd}" then
+      	        cmd = "ftp_502"
+      	      end
+      	    end
+      	    method = method(:"#{cmd}")
+      	   # puts method
+      	    if method.call(args[2]) == -1 then break
+      	    end
           end
           puts "[#{Process.pid}] Killing connection from #{peeraddr[2]}:#{peeraddr[1]}"
           @cs.close
