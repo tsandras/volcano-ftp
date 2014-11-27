@@ -2,5 +2,5 @@ MIN_PORT	:	1025
 MAX_PORT	:	65534
 HOST		:	127.0.0.1
 PORT		:	4242
-ROOT		:	/Users/tristan/Documents/sandra_t/volcano
-LOG         :   volcano.log
+ROOT		:	/Users/Faouzi/Documents/master/volcano/rootdir
+LOG         :   /Users/Faouzi/Documents/master/volcano/volcano-ftp/volcano.log

@@ -13,7 +13,7 @@ MAX_PORT = CONFIGS['MAX_PORT']
 HOST = CONFIGS['HOST']
 PORT = CONFIGS['PORT']
 ROOT = CONFIGS['ROOT']
-LOG = CONFIGS['LOG']
+LOG  = CONFIGS['LOG']
 
 # Volcano FTP class
 class VolcanoFtp
@@ -21,8 +21,9 @@ class VolcanoFtp
     if File.exists?ROOT
        if File.readable?ROOT
        	  if File.directory?ROOT
+           @f = File.open(LOG, "a+")
     	     Dir.chdir(ROOT)
-	     @socket = TCPServer.new(HOST, port)
+	         @socket = TCPServer.new(HOST, port)
     	     @socket.listen(42)
     	     @pids = []
     	     @transfert_type = BINARY_MODE
@@ -253,9 +254,7 @@ class VolcanoFtp
   end
 
   def log(message)
-    f = File.open(LOG, "a+")
-    f.puts(message)
-    f.close
+    @f.puts(message)
   end
 
   def run
@@ -291,6 +290,7 @@ class VolcanoFtp
           end
           puts "[#{Process.pid}] Killing connection from #{peeraddr[2]}:#{peeraddr[1]}"
           log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# [#{Process.pid}] Killing connection")
+          @f.close
           @cs.close
           Kernel.exit!
         end
