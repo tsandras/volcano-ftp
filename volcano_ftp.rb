@@ -137,7 +137,6 @@ class VolcanoFtp
     resp = `ls -l #{args}`
     @cs.write "125 Opening data connection for #{args}.\r\n"
     log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 125 Opening data connection for #{args}")
-    #@tsocket.write resp
     resp.split("\n").each {|file|
       @tsocket.write "#{file}\r\n"
     }
@@ -151,7 +150,7 @@ class VolcanoFtp
     if Dir.exists?(args)
       @cs.write "550 A directory #{args} already.\r\n"
       log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 A directory #{args} already")
-      return -1
+      return 0
     end
     @cs.write "150 Opening ASCII mode data connection for file stor.\r\n"
     log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 150 Opening ASCII mode data connection for file stor")
@@ -171,12 +170,12 @@ class VolcanoFtp
     unless File.exists?(args)
       @cs.write "550 No such file #{args}.\r\n"
       log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 No such file #{args}")
-      return -1
+      return 0
     end
     unless File.readable?(args)
       @cs.write "550 Can't read file #{args}.\r\n"
       log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 Can't read file #{args}")
-      return -1
+      return 0
     end
     File.open(args) do |f|
       while(chunk = f.read(2048))
@@ -194,7 +193,7 @@ class VolcanoFtp
     unless File.exists?(args)
       @cs.write "550 No such file #{args}.\r\n"
       log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 No such file #{args}")
-      return -1
+      return 0
     end
     File.delete(args)
     @cs.write "250 DELE COMMAND Successful.\r\n"
@@ -207,7 +206,7 @@ class VolcanoFtp
     unless Dir.exists?(args)
       @cs.write "550 No such directory.\r\n"
       log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 No such directory")
-      return -1
+      return 0
     end
     Dir.delete args
     @cs.write "250 RMD COMMAND Successful.\r\n"
@@ -231,7 +230,7 @@ class VolcanoFtp
       unless File.exists?(args)
         @cs.write "550 No such file #{args}.\r\n"
         log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 No such file #{args}")
-        return -1
+        return 0
       end
       @originalfile = args.strip
       @cs.write "250 RNFR COMMAND Successful.\r\n"
@@ -243,7 +242,7 @@ class VolcanoFtp
       if File.exists?(args)
         @cs.write "550 File #{args} already exists.\r\n"
         log("#{Time.now.to_s} ##{@cs.peeraddr[2]}:#{@cs.peeraddr[1]}# response => 550 File #{args} already exists")
-        return -1
+        return 0
       end
       newfile = "#{Dir.pwd}/#{args}"
       newfile.strip
@@ -254,7 +253,7 @@ class VolcanoFtp
   end
 
   def log(message)
-    f = File.open(LOG, "a")
+    f = File.open(LOG, "a+")
     f.puts(message)
     f.close
   end
@@ -287,7 +286,7 @@ class VolcanoFtp
               end
             end
             method = method(:"#{cmd}")
-            if method.call(args[2]) == -1 then break
+            if method.call(args[2].strip) == -1 then break
             end
           end
           puts "[#{Process.pid}] Killing connection from #{peeraddr[2]}:#{peeraddr[1]}"
