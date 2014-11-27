@@ -1,24 +1,26 @@
 #!/usr/bin/env ruby
 require "./volcano_ftp.rb"
+require 'daemons'
+require 'optparse'
 
-def start(port)
-  begin
-    ftp = VolcanoFtp.new(port)
-    ftp.run
-  rescue SystemExit, Interrupt
-    puts "Caught CTRL+C, exiting"
-  rescue RuntimeError => e
-    puts e
+config = {
+  :port => 9999
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} start [--port PORT_NUMBER]"
+
+  opts.on("--port PORT", "Port Number") do |port|
+    config[:port] = port
   end
-end
 
-case ARGV[1]
-when "start"
-  start(ARGV[0])
-when "stop"
-  puts "Not implemented yet"
-when "restart"
-  puts "Not implemented yet"
-else
-  puts "Woot ?!"
+end.parse!
+
+Daemons.run_proc(
+  'volcano_ftp',
+  {
+    :log_output => true,
+  }) do
+    ftp = VolcanoFtp.new(config[:port])
+    ftp.run
 end
